@@ -7,6 +7,7 @@ import { initializeApp } from 'firebase/app';
 import md5 from "react-native-md5";
 import {NavigationContainer, StackActions} from '@react-navigation/native'
 import {createStackNavigator} from '@react-navigation/stack'
+import Textarea from 'react-native-textarea';
 
 const firebaseConfig = {
     apiKey: "AIzaSyBFu8QaULKyu3bX9o00qQmWXa69xrg5cWs",
@@ -28,6 +29,7 @@ export default class Travels extends React.Component{
     state = {
         isVisible: false,
         titoloViaggio: "",
+        descrizioneViaggio: "",
         viaggi: [],
         newViaggio: {nome: ""}
     }
@@ -41,18 +43,17 @@ export default class Travels extends React.Component{
             querySnapshot.forEach((doc) => {
                 const nome = doc.data().titolo;
                 const img = doc.data().img;
+                const id = doc.data().id;
 
                 const objViaggio = {
-                    id: md5.hex_md5( Date.now() +"" ),
-                    nome: nome,
-                    img: img
+                    id,
+                    nome,
+                    img
                 }
 
                 this.updateViaggi(objViaggio)
             });
         });
-
-        console.log(JSON.stringify(this.state.viaggi))
     }
 
     updateViaggi = viaggio => {
@@ -64,7 +65,8 @@ export default class Travels extends React.Component{
     }
 
     insertDocument = (id,titolo,img,username) => {
-        setDoc(doc(db, "viaggi", titolo), {
+        setDoc(doc(db, "viaggi", id), {
+            id,
             titolo,
             img,
             username
@@ -80,7 +82,11 @@ export default class Travels extends React.Component{
         this.setState({titoloViaggio})
     }
 
-    onAddViaggio = (viaggio) => {
+    OnChangeDescriptionHandler = (descrizioneViaggio) => {
+        this.setState({descrizioneViaggio})
+    }
+
+    onAddViaggio = (viaggio, descrizione) => {
         if(viaggio.trim() === "")
         {
             alert("Dai un titolo al tuo viaggio!")
@@ -96,10 +102,15 @@ export default class Travels extends React.Component{
         const objViaggio = {
             id,
             nome: viaggio,
+            descrizione,
             img
         }
-        //this.updateViaggi.bind(objViaggio)
-        this.setState({newViaggio: objViaggio});
+
+        this.setState({
+            viaggi: []
+        })
+
+        this.updateViaggi.bind(objViaggio)
     }
 
     deleteViaggio = (id) => 
@@ -118,6 +129,7 @@ export default class Travels extends React.Component{
 
     goToTravel = (viaggio) => {
         this.props.navigation.navigate('Viaggio',{
+            id: viaggio.id,
             name: viaggio.nome
         })
     }
@@ -126,7 +138,7 @@ export default class Travels extends React.Component{
         const cardViaggi = this.state.viaggi.map( (item, index) => {
             return(
                 <TouchableOpacity key={item.id} onPress={this.goToTravel.bind(this,item)}>
-                    <TravelCard title={item.nome}/>
+                    <TravelCard title={item.nome} description={"desscrizione"}/>
                 </TouchableOpacity>
             )
         })
@@ -145,10 +157,10 @@ export default class Travels extends React.Component{
                         <TextInput
                             style={styles.input}
                             onChangeText={this.OnChangeTextHandler}
-                            placeholder="Titolo del tuo viaggio"
+                            placeholder="Nome del tuo viaggio"
                         />
                             <Pressable
-                                style={[styles.button, styles.buttonClose]}
+                                style={[styles.buttonOpen, styles.button]}
                                 onPress={this.onAddViaggio.bind(this, this.state.titoloViaggio)}
                                 >
                                 <Text style={styles.textStyle}>Aggiungi viaggio</Text>
@@ -157,18 +169,15 @@ export default class Travels extends React.Component{
                                 style={[styles.button, styles.buttonClose]}
                                 onPress={this.changeVisibility}
                                 >
-                                <Text style={styles.textStyle}>Hide Modal</Text>
+                                <Text style={styles.textStyle}>Annulla</Text>
                             </Pressable>
                         </View>
                     </View>
                 </Modal>
 
                 <CustomizeButton title={"Aggiungi un nuovo viaggio"} bgColor={"#5DADE2"} onPress={this.changeVisibility}/>
-                <ScrollView>
+                <ScrollView contentContainerStyle={styles.containerScrollview}>
                     {cardViaggi}
-                    
-                    {this.renderTravelCard}
-                    
                 </ScrollView>
             </View>
         )
@@ -178,9 +187,13 @@ export default class Travels extends React.Component{
 const styles = StyleSheet.create({
     input: {
         height: 40,
+        width: "20%",
         margin: 12,
         borderWidth: 1,
         padding: 10,
+    },
+    containerScrollview:{
+        alignItems: 'center',
     },
     mainContainer: {
         flex: 1
@@ -212,10 +225,10 @@ const styles = StyleSheet.create({
       elevation: 2
     },
     buttonOpen: {
-      backgroundColor: "#F194FF",
+      backgroundColor: "#25C01C",
     },
     buttonClose: {
-      backgroundColor: "#2196F3",
+      backgroundColor: "#BA0000",
     },
     textStyle: {
       color: "white",
@@ -225,5 +238,16 @@ const styles = StyleSheet.create({
     modalText: {
       marginBottom: 15,
       textAlign: "center"
-    }
+    },
+    textareaContainer: {
+        height: 180,
+        padding: 5,
+        backgroundColor: '#F5FCFF',
+      },
+      textarea: {
+        textAlignVertical: 'top',  // hack android
+        height: 170,
+        fontSize: 14,
+        color: '#333',
+      },
   });
