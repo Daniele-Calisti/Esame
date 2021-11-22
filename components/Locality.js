@@ -8,8 +8,10 @@ const TravelCard = props => {
             <View style={styles.cardContainer}>
                 <Image style={styles.imageStyle} source={{uri:"https://source.unsplash.com/random"}} />
                 <View style={styles.infoStyle}>
-                <Text style={styles.titleStyle}>{props.title}</Text>
-                <Text style={styles.categoryStyle}>{props.description}</Text>
+                <Text style={styles.titleStyle}>{props.nome}</Text>
+                <Text style={styles.categoryStyle}><Ionicons name={"business"} size={30} /> {props.indirizzo}</Text>
+                <Text></Text>
+                <Text style={styles.categoryStyle}><Ionicons name={"ios-time"} size={15} /> {(props.openNow ? "Aperto" : "Chiuso")}</Text>
                 </View>
             </View>
         </View>
